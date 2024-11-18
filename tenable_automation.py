@@ -4,7 +4,7 @@
    tio_secret_key = get the Tenable.io secret key from your environment
    #AWS SES server access
    smtp_server = "email server address" 
-   smtp_port = 587
+   smtp_port = 587 (port 465 needed for TLS Wrapper)
    smtp_email = "email username"
    smtp_password = "email password"
    sender_email = "sender email"
@@ -39,9 +39,9 @@ function send_vulnerability_email(recipient_email, asset_name, vulnerabilities):
    add the body text to the email message
 
    try:
-      connect to the email server (SMTP_SERVER, SMTP_PORT)
+      connect to the email server (smtp_server, smtp_port)
       secure the connection with TLS encryption
-      log in to the email server (SMTP_USERNAME, SMTP_PASSWORD)
+      log in to the email server (smtp_username, smtp_password)
       send the email
       print "Email sent to [the recipient's email address]"
    catch any errors that occur while sending the email:
