@@ -1,74 +1,115 @@
-#Essential inputs needed for script
-   #Tenable API Access
-   tio_account_access = get the Tenable.io access key from your environment
-   tio_secret_key = get the Tenable.io secret key from your environment
-   #AWS SES server access
-   smtp_server = "email server address" 
-   smtp_port = 587 (port 465 needed for TLS Wrapper)
-   smtp_email = "email username"
-   smtp_password = "email password"
-   sender_email = "sender email"
-
-#Connect to Tenable.io:
-   tio = connect to Tenable.io using access key and secret key
-
-#Function to retrieve vulnerabilities for each asset:
-function get_asset_vulnerabilities():
-   assets_with_vulns = create an empty list to store assets and their vulnerabilities
-   assets = get a list of all assets from Tenable.io
-   for each asset in the list of assets:
-      vulns = get the vulnerabilities for the current asset from Tenable.io
-      if there are any vulnerabilities for this asset:
-         add the asset and its vulnerabilities to the assets_with_vulns list
-   return the assets_with_vulns list
-
-#Function to send an email about vulnerabilities:
-function send_vulnerability_email(recipient_email, asset_name, vulnerabilities):
-   create a new email message
-   set the sender of the email to SENDER_EMAIL
-   set the recipient of the email to recipient_email
-   set the subject of the email to "Vulnerability Report for [the asset name]"
-
-#Create the email body:
-   body = "Hello,\n\nThis is a vulnerability report for your computer: [the asset name]\n\n"
-   for each vulnerability in the list of vulnerabilities:
-      body += "Vulnerability: [the name of the vulnerability]\n"
-      body += "Severity: [the severity level of the vulnerability]\n"
-      body += "Remediation: [the steps to fix the vulnerability]\n\n"
-
-   add the body text to the email message
-
-   try:
-      connect to the email server (smtp_server, smtp_port)
-      secure the connection with TLS encryption
-      log in to the email server (smtp_username, smtp_password)
-      send the email
-      print "Email sent to [the recipient's email address]"
-   catch any errors that occur while sending the email:
-      print "Error sending email: [the error message]"
-
-// Main function to control the process:
-function main():
-   try:
-      asset_vulnerabilities = get_asset_vulnerabilities()
-
-      // Create a list to match asset names with user emails:
-      asset_to_email_mapping = {
-         "asset_name1": "user1@example.com",
-         "asset_name2": "user2@example.com",
-         // ... add more mappings as needed
-      }
-
-      for each asset_name and its vulnerabilities in the asset_vulnerabilities list:
-         recipient_email = find the email address for the current asset_name in the mapping
-         if an email address is found:
-            send_vulnerability_email(recipient_email, asset_name, vulnerabilities)
-         else:
-            print "No email address found for asset: [the asset name]"
-   catch any errors that occur during the process:
-      print "An error occurred: [the error message]"
+import os
+import json
+import boto3
+from tenable.io import TenableIO
+from botocore.exceptions import ClientError
 
 
-#Start the process if this script is run directly:
-if this script is the main program being run: 
-   main()
+# --- Configuration ---
+tio_access_key = 'key'
+tio_secret_key = 'secret'
+aws_region = 'us-east-1'
+sender_email = 'security@contrastsecurity.com'
+
+# Get access/secret key for SES
+def get_secret():
+
+    secret_name = "ses_tenable_key"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        # For a list of exceptions thrown, see
+        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+        raise e
+
+    secret = get_secret_value_response['SecretString']
+
+# Initialize Tenable.io and AWS SES clients
+tio = TenableIO(tio_access_key, tio_secret_key)
+ses_client = boto3.client('ses', region_name='us-east-1')
+
+# Retrieves a list of assets with their vulnerabilities from Tenable.io.
+def get_asset_vulnerabilities():
+
+    # returns dictionary where keys are asset names and values are lists of vulns
+    assets_with_vulns = {}
+    assets = tio.assets.list()
+    for asset in assets:
+        vulns = tio.workbenches.vuln_info(asset_id=asset['id'])
+        if vulns:
+            assets_with_vulns[asset['name']] = vulns
+    return assets_with_vulns
+
+# Sends an email to a user with a list of vulnerabilities on their machine using AWS SES.
+def send_vulnerability_email(recipient_email, asset_name, vulnerabilities):
+    """
+    Args:
+        recipient_email (str): The email address of the recipient.
+        asset_name (str): The name of the asset.
+        vulnerabilities (list): A list of vulnerabilities.
+    """
+    # Create email body w/ vulnerability details and remediation information
+    body = f"Hello,\n\nThis is a vulnerability report for your computer: {asset_name}\n\n"
+    for vuln in vulnerabilities:
+        body += f"Vulnerability: {vuln['plugin_name']}\n"
+        body += f"Severity: {vuln['severity']}\n"
+        body += f"Remediation: {vuln['solution']}\n\n"
+
+    try:
+        response = ses_client.send_email(
+            Source=sender_email,
+            Destination={
+                'ToAddresses': [recipient_email]
+            },
+            Message={
+                'Subject': {
+                    'Data': f'Vulnerability Report for {asset_name}'
+                },
+                'Body': {
+                    'Text': {
+                        'Data': body
+                    }
+                }
+            }
+        )
+        print(f"Email sent to {recipient_email} with message ID: {response['MessageId']}")
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+# def main():
+#     """
+#     Main function to retrieve vulnerabilities and send emails.
+#     """
+#     try:
+#         asset_vulnerabilities = get_asset_vulnerabilities()
+
+#         # Assuming you have a way to map asset names to user emails (e.g., through tags)
+#         asset_to_email_mapping = {
+#             # 'asset_name1': 'user1@example.com',
+#             # 'asset_name2': 'user2@example.com',
+#             # ...
+#         }
+
+#         for asset_name, vulnerabilities in asset_vulnerabilities.items():
+#             recipient_email = asset_to_email_mapping.get(asset_name)
+#             if recipient_email:
+#                 send_vulnerability_email(recipient_email, asset_name, vulnerabilities)
+#             else:
+#                 print(f"No email address found for asset: {asset_name}")
+
+#     except Exception as e:
+#         print(f"An error occurred: {e}")
+
+# if __name__ == "__main__":
+#     main()
