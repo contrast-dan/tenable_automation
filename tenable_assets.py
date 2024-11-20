@@ -31,6 +31,14 @@ def get_secret(secret_name, region_name):
 secret_name = "ses_tenable_key"
 region_name = "us-east-1"
 
+# import keys
+import json
+secret_dict = json.loads(secret)
+access_key = secret_dict['accesskey']
+secret_key = secret_dict['secretkey']
+
+tio = TenableIO(access_key, secret_key)
+
 # Get secret from Secrets Manager
 secret = get_secret(secret_name, region_name)
 
