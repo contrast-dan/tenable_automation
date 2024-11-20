@@ -1,3 +1,4 @@
+import boto3
 from tenable.io import TenableIO
 
 # Get access/secret key for SES
@@ -25,7 +26,7 @@ def get_secret():
     secret = get_secret_value_response['SecretString']
 
 # Initiate tenable authorization
-tio = TenableIO(secret_name)
+tio = TenableIO(SecretId)
 
 #Get all assets
 assets = tio.assets.list()
