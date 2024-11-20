@@ -12,7 +12,7 @@ aws_region = 'us-east-1'
 sender_email = 'security@contrastsecurity.com'
 
 # Get access/secret key for SES
-def get_secret():
+def get_secret(secret_name, region_name):
 
     secret_name = "ses_tenable_key"
     region_name = "us-east-1"

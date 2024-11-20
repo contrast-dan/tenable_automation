@@ -2,7 +2,7 @@ import boto3
 from tenable.io import TenableIO
 
 # Get access/secret key for SES
-def get_secret():
+def get_secret(secret_name, region_name):
 
     secret_name = "ses_tenable_key"
     region_name = "us-east-1"
@@ -24,6 +24,8 @@ def get_secret():
         raise e
 
     secret = get_secret_value_response['SecretString']
+
+    return secret
 
 # Initiate tenable authorization
 tio = TenableIO(SecretId)
