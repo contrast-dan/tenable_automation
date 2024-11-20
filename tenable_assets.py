@@ -16,7 +16,7 @@ def get_secret(secret_name, region_name):
 
     try:
         get_secret_value_response = client.get_secret_value(
-            SecretId=secret_name
+            SecretId='secret_name'
         )
     except ClientError as e:
         # For a list of exceptions thrown, see
@@ -27,27 +27,27 @@ def get_secret(secret_name, region_name):
 
     return secret
 
-# Initiate tenable authorization
-secret_name = "ses_tenable_key"
-region_name = "us-east-1"
+	# Initiate tenable authorization
+	secret_name = "ses_tenable_key"
+	region_name = "us-east-1"
 
-# import keys
-import json
-secret_dict = json.loads(secret)
-access_key = secret_dict['accesskey']
-secret_key = secret_dict['secretkey']
+	# import keys
+	import json
+	secret_dict = json.loads(secret)
+	access_key = secret_dict['accesskey']
+	secret_key = secret_dict['secretkey']
 
-tio = TenableIO(access_key, secret_key)
+	tio = TenableIO(access_key, secret_key)
 
-# Get secret from Secrets Manager
-secret = get_secret(secret_name, region_name)
+	# Get secret from Secrets Manager
+	secret = get_secret(secret_name, region_name)
 
-# Get all assets
-assets = tio.assets.list()
+	# Get all assets
+	assets = tio.assets.list()
 
-# Extract all machine names
-machine_names = [asset['hostname'] for asset in assets]
+	# Extract all machine names
+	machine_names = [asset['hostname'] for asset in assets]
 
-# Print machine names
-for name in machine_names:
-	print(name)
+	# Print machine names
+	for name in machine_names:
+		print(name)
