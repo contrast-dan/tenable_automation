@@ -28,9 +28,13 @@ def get_secret(secret_name, region_name):
     return secret
 
 # Initiate tenable authorization
-tio = TenableIO(SecretId)
+secret_name = "ses_tenable_key"
+region_name = "us-east-1"
 
-#Get all assets
+# Get secret from Secrets Manager
+secret = get_secret(secret_name, region_name)
+
+# Get all assets
 assets = tio.assets.list()
 
 # Extract all machine names
