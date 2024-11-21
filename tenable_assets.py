@@ -1,4 +1,5 @@
 import boto3
+import json
 from tenable.io import TenableIO
 
 # Get access/secret key for SES
@@ -15,9 +16,9 @@ def get_secret(secret_name, region_name):
     )
 
     try:
-        get_secret_value_response = client.get_secret_value(
-            SecretId='secret_name'
-        )
+        get_secret_value_response = client.get_secret_value(SecretId='secret_name')
+        print(get_secret_value_response)
+
     except ClientError as e:
         # For a list of exceptions thrown, see
         # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
@@ -25,29 +26,28 @@ def get_secret(secret_name, region_name):
 
     secret = get_secret_value_response['SecretString']
 
-    return secret
+    # return(secret)
 
-	# Initiate tenable authorization
-	secret_name = "ses_tenable_key"
-	region_name = "us-east-1"
+# Initiate tenable authorization
+secret_name = "ses_tenable_key"
+region_name = "us-east-1"
 
-	# import keys
-	import json
-	secret_dict = json.loads(secret)
-	access_key = secret_dict['accesskey']
-	secret_key = secret_dict['secretkey']
+# import keys
+secret_dict = json.loads(secret)
+access_key = secret_dict['accesskey']
+secret_key = secret_dict['secretkey']
 
-	tio = TenableIO(access_key, secret_key)
+tio = TenableIO(access_key, secret_key)
 
-	# Get secret from Secrets Manager
-	secret = get_secret(secret_name, region_name)
+# Get secret from Secrets Manager
+secret = get_secret(secret_name, region_name)
 
-	# Get all assets
-	assets = tio.assets.list()
+# Get all assets
+assets = tio.assets.list()
 
-	# Extract all machine names
-	machine_names = [asset['hostname'] for asset in assets]
+# Extract all machine names
+machine_names = [asset['hostname'] for asset in assets]
 
-	# Print machine names
-	for name in machine_names:
-		print(name)
+# Print machine names
+for name in machine_names:
+	print(name)
