@@ -6,7 +6,7 @@ from botocore.exceptions import ClientError
 import os
 from tenable.io import TenableIO
 
-# Get access/secret key for SES
+# Get access/secret for Tenable
 def get_secret():
 
     secret_name = "SecOps/Tenable/ApiKey"
@@ -66,8 +66,8 @@ def auth():
         "content-type": "application/json",
         "x-apikeys": apiKeys
     }
-    return authHeaders
-    
+    print(authHeaders)
+
 # # Initiate tenable authorization
 # secret_name = "ses_tenable_key"
 # region_name = "us-east-1"
