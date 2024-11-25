@@ -2,10 +2,12 @@ import requests
 import base64
 import boto3
 import json
+from botocore.exceptions import ClientError
+import os
 from tenable.io import TenableIO
 
 # Get access/secret key for SES
-def get_secret(secret_name, region_name):
+def get_secret():
 
     secret_name = "SecOps/Tenable/ApiKey"
     region_name = "us-east-1"
@@ -43,19 +45,29 @@ def get_secret(secret_name, region_name):
             # Deal with the exception here, and/or rethrow at your discretion.
             raise e
         else:
-            raise e:
-        get_secret_value_response = client.get_secret_value(SecretId='secret_name')
-        print(get_secret_value_response)
+            raise e
 
-    except ClientError as e:
-        # For a list of exceptions thrown, see
-        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-        raise e
-
-    secret = get_secret_value_response['SecretString']
-
+    # Decrypts secret using the associated KMS CMK.
+    # Depending on whether the secret is a string or binary, one of these fields will be populated.
+    if 'SecretString' in get_secret_value_response: 
+        secret = get_secret_value_response['SecretString']
+    else:
+        decoded_binary_secret = base64.b64decode(get_secret_value_response['SecretBinary'])
     print(secret)
 
+    secretJson = json.loads(secret)
+
+    return secretJson[secret_name]
+
+def auth():
+    apiKeys = get_secret()
+    authHeaders = {
+        "Accept": "application/json",
+        "content-type": "application/json",
+        "x-apikeys": apiKeys
+    }
+    return authHeaders
+    
 # # Initiate tenable authorization
 # secret_name = "ses_tenable_key"
 # region_name = "us-east-1"
