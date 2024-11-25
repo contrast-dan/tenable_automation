@@ -87,29 +87,29 @@ def send_vulnerability_email(recipient_email, asset_name, vulnerabilities):
     except Exception as e:
         print(f"Error sending email: {e}")
 
-# def main():
-#     """
-#     Main function to retrieve vulnerabilities and send emails.
-#     """
-#     try:
-#         asset_vulnerabilities = get_asset_vulnerabilities()
+def main():
+    """
+    Main function to retrieve vulnerabilities and send emails.
+    """
+    try:
+        asset_vulnerabilities = get_asset_vulnerabilities()
 
-#         # Assuming you have a way to map asset names to user emails (e.g., through tags)
-#         asset_to_email_mapping = {
-#             # 'asset_name1': 'user1@example.com',
-#             # 'asset_name2': 'user2@example.com',
-#             # ...
-#         }
+        # Assuming you have a way to map asset names to user emails (e.g., through tags)
+        asset_to_email_mapping = {
+            # 'asset_name1': 'user1@example.com',
+            # 'asset_name2': 'user2@example.com',
+            # ...
+        }
 
-#         for asset_name, vulnerabilities in asset_vulnerabilities.items():
-#             recipient_email = asset_to_email_mapping.get(asset_name)
-#             if recipient_email:
-#                 send_vulnerability_email(recipient_email, asset_name, vulnerabilities)
-#             else:
-#                 print(f"No email address found for asset: {asset_name}")
+        for asset_name, vulnerabilities in asset_vulnerabilities.items():
+            recipient_email = asset_to_email_mapping.get(asset_name)
+            if recipient_email:
+                send_vulnerability_email(recipient_email, asset_name, vulnerabilities)
+            else:
+                print(f"No email address found for asset: {asset_name}")
 
-#     except Exception as e:
-#         print(f"An error occurred: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
